@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset = "UTF-8">
+  <title>A DAOs with reputation system</title>
+  <script src = "https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+  <script>  
+    const web3 = new Web3('HTTP://127.0.0.1:7545'); 
+    const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "who",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_password",
+				"type": "string"
+			}
+		],
+		"name": "assign_new_user",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int64",
+				"name": "x",
+				"type": "int64"
+			}
+		],
+		"name": "cal_votes",
+		"outputs": [
+			{
+				"internalType": "int64",
+				"name": "",
+				"type": "int64"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "post_id",
+				"type": "uint64"
+			}
+		],
+		"name": "cancel_like_or_dislike",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "post_id",
+				"type": "uint64"
+			},
+			{
+				"internalType": "address",
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_context",
+				"type": "string"
+			}
+		],
+		"name": "comment_something",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_description",
+				"type": "string"
+			}
+		],
+		"name": "create_pool",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "post_id",
+				"type": "uint64"
+			}
+		],
+		"name": "dislike",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "who",
+				"type": "address"
+			}
+		],
+		"name": "exist",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "post_id",
+				"type": "uint64"
+			}
+		],
+		"name": "like",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_message",
+				"type": "string"
+			}
+		],
+		"name": "post_something",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "",
+				"type": "uint64"
+			}
+		],
+		"name": "posts",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "uint64",
+				"name": "id",
+				"type": "uint64"
+			},
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "message",
+				"type": "string"
+			},
+			{
+				"internalType": "uint64",
+				"name": "last_comment_id",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint64",
+				"name": "likes",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint64",
+				"name": "dislikes",
+				"type": "uint64"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "post_id",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint64",
+				"name": "comment_id",
+				"type": "uint64"
+			}
+		],
+		"name": "show_comment",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "x",
+				"type": "uint256"
+			}
+		],
+		"name": "show_pool",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "int64",
+				"name": "",
+				"type": "int64"
+			},
+			{
+				"internalType": "int64",
+				"name": "",
+				"type": "int64"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint64",
+				"name": "post_id",
+				"type": "uint64"
+			}
+		],
+		"name": "show_post",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			},
+			{
+				"internalType": "uint64",
+				"name": "",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint64",
+				"name": "",
+				"type": "uint64"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "uint64",
+				"name": "vote_id",
+				"type": "uint64"
+			}
+		],
+		"name": "un_vote",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "users",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "password",
+				"type": "string"
+			},
+			{
+				"internalType": "int64",
+				"name": "token",
+				"type": "int64"
+			},
+			{
+				"internalType": "int256",
+				"name": "id",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "uint64",
+				"name": "vote_id",
+				"type": "uint64"
+			},
+			{
+				"internalType": "int64",
+				"name": "amount",
+				"type": "int64"
+			}
+		],
+		"name": "vote_no",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "uint64",
+				"name": "vote_id",
+				"type": "uint64"
+			},
+			{
+				"internalType": "int64",
+				"name": "amount",
+				"type": "int64"
+			}
+		],
+		"name": "vote_yes",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+];
+
+    const contractAddress = '0xF01a3372d6dd01be5A752D7216710228bCfC78Fe';
+    const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
+    var log_in_address = ""
+    function assign_new_user() 
+    {
+      const userAddress = document.getElementById('Assign_user-address').value;
+      const userName = document.getElementById('Assign_user-name').value;
+      const userPassword = document.getElementById('Assign_user-password').value;
+      contractInstance.methods.assign_new_user(userAddress, userName, userPassword).send({
+        from: userAddress
+        ,gas: 500000
+      })
+      .then((result) => {
+        console.log('Result:', result);
+        document.getElementById('Assign_result').innerHTML = 'Success';
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error assign new user!');
+      });
+    }
+    function log_in()
+    {
+        const userAddress = document.getElementById('Log_in_user-address').value;
+        const userName = document.getElementById('Log_in_user-name').value;
+        const userPassword = document.getElementById('Log_in_user-password').value;
+        contractInstance.methods.users(userAddress).call()
+      .then((result) => {
+        console.log('Result:', result);
+        if(userName == result[0] && userPassword == result[1]) 
+        {
+            log_in_address = userAddress;
+			document.getElementById('not_log_in').style.display = 'none';
+			document.getElementById('log_in').style.display = '';
+        }
+		else
+		{
+			document.getElementById('Log_in_result').innerHTML = 'Please check if the content U entered is correct'
+		}
+      })
+	  .catch((error) => {
+        console.error('Error:', error);
+        alert('Error log in!');
+      });
+    }
+
+	function log_out()
+	{
+		log_in_address = "";
+		document.getElementById('not_log_in').style.display = '';
+		document.getElementById('log_in').style.display = 'none';
+	}
+
+    function user_info()
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+        const userAddress = document.getElementById('User_info_user-address').value;
+        contractInstance.methods.users(userAddress).call()
+      .then((result) => {
+        console.log('Result:', result);
+        document.getElementById('User_info_result').innerHTML = "name:" + result[0] + "<br>reputation:" + result[2];
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error user info!');
+      });
+    }
+
+    function post_something() 
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+		const userAddress = log_in_address;
+		const Title = document.getElementById('post_something_Title').value;
+		const Content = document.getElementById('post_something_Content').value;
+		contractInstance.methods.post_something(userAddress, Title, Content).send({
+			from: userAddress
+			,gas: 500000
+		})
+		.then((result) => {
+			console.log('Result:', result);
+			document.getElementById('post_something_result').innerHTML = 'Success';
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+			alert('Error post something!');
+		});
+    }
+
+    function like() 
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+		const Post_id = document.getElementById('like_Post_id').value;
+		contractInstance.methods.like(Post_id).send({
+			from: log_in_address
+			,gas: 500000
+		})
+		.then((result) => {
+			console.log('Result:', result);
+			document.getElementById('like_result').innerHTML = 'Success';	
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+			alert('Error like!');
+		});
+    }
+
+    function dislike() 
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+		const Post_id = document.getElementById('dislike_Post_id').value;
+		contractInstance.methods.dislike(Post_id).send({
+			from: log_in_address
+			,gas: 500000
+		})
+		.then((result) => {
+			console.log('Result:', result);
+			document.getElementById('dislike_result').innerHTML = 'Success';
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+			alert('Error dislike!');
+		});
+    }
+
+	function Cancel_like_or_dislike()
+	{
+		const Post_id = document.getElementById('Cancel_like_or_dislike_Post_id').value;
+		contractInstance.methods.cancel_like_or_dislike(Post_id).send({
+			from: log_in_address
+			,gas: 500000
+		})
+		.then((result) => {
+			console.log('Result:', result);
+			document.getElementById('Cancel_like_or_dislike_result').innerHTML = 'Success';
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+			alert('Error cancel_like_or_dislike!');
+		});
+	}
+
+    function Show_post()
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+        const Post_id = document.getElementById('Show_post_Post_id').value;
+        contractInstance.methods.posts(Post_id).call()
+      .then((result) => {
+        console.log('Result:', result);
+        document.getElementById('Show_post_result').innerHTML = "from: " + result[0] + "<br>Title: " + result[2]
+        + "<br>Content: " + result[3] + "<br>Likes: " + result[5] + "<br>Dislikes: " + result[6];
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error Show post!');
+        alert(error);
+      });
+    }
+
+    function comment_something() 
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+		const userAddress = log_in_address;
+		const Post_id = document.getElementById('comment_something_Post_id').value;
+		const Content = document.getElementById('comment_something_Content').value;
+		contractInstance.methods.comment_something(Post_id, userAddress, Content).send({
+			from: userAddress
+			,gas: 500000
+		})
+		.then((result) => {
+			console.log('Result:', result);
+			document.getElementById('comment_something_result').innerHTML = 'Success';
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+			alert('Error comment something!');
+		});
+    }
+
+    function show_comment()
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+        const Post_id = document.getElementById('Show_comment_Post_id').value;
+        const Comment_id = document.getElementById('Show_comment_Comment_id').value;
+        contractInstance.methods.show_comment(Post_id, Comment_id).call()
+      .then((result) => {
+        console.log('Result:', result);
+        document.getElementById('Show_comment_result').innerHTML = result;
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error Show comment!');
+        alert(error);
+      });
+    }
+
+    function create_pool()
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+        const userAddress = log_in_address;
+        const Description = document.getElementById("Create_pool_Description").value;
+        contractInstance.methods.create_pool(userAddress, Description).send({
+        from: userAddress
+		,gas: 500000
+      })
+      .then((result) => {
+        console.log('Result:', result);
+		if(result[0] == true)
+        {
+			document.getElementById('Create_pool_result').innerHTML = 'Success';
+		}
+		else
+		{
+			document.getElementById('Create_pool_result').innerHTML = 'Not enough reputation';
+		}
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error create pool!');
+      });
+    }
+
+    function show_pool()
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+        const Vote_id = document.getElementById("Show_pool_Vote_id").value;
+        contractInstance.methods.show_pool(Vote_id).call()
+      .then((result) => {
+        console.log('Result:', result);
+        document.getElementById('Show_pool_result').innerHTML = "Description: " + result[0] + "<br>vote yes: " + result[1] 
+        + "<br>vote no: " + result[2];
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error Show pool!');
+        alert(error);
+      });
+    }
+
+    function vote_yes()
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+        const userAddress = log_in_address;
+        const Vote_id = document.getElementById("Vote_yes_Post_id").value;
+        const Amount = document.getElementById("Vote_yes_Amuont").value;
+        contractInstance.methods.vote_yes(userAddress, Vote_id, Amount).send({
+        from: userAddress
+		,gas: 500000
+      })
+      .then((result) => {
+        console.log('Result:', result);
+        document.getElementById('Vote_yes_result').innerHTML = 'Success';
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error vote yes!');
+      });
+    }
+
+    function vote_no()
+    {
+		if(log_in_address == "")
+		{
+			alert("Please log in!");
+			return;
+		}
+        const userAddress = log_in_address;
+        const Vote_id = document.getElementById("Vote_no_Post_id").value;
+        const Amount = document.getElementById("Vote_no_Amuont").value;
+        contractInstance.methods.vote_yes(userAddress, Vote_id, Amount).send({
+        from: userAddress
+		,gas: 500000
+      })
+      .then((result) => {
+        console.log('Result:', result);
+        document.getElementById('Vote_no_result').innerHTML = 'Success';
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error vote no!');
+      });
+    }
+  </script>
+</head>
+<body>
+	<div id = "not_log_in">
+	<h1>Assign_New_User</h1>
+		<form>
+			<label for = "user-address">User_Address:</label><br>
+			<input type = "text" id = "Assign_user-address"><br><br>
+			<label for = "user-name">User_Name:</label><br>
+			<input type = "text" id = "Assign_user-name"><br><br>
+			<label for = "user-password">User_Password:</label><br>
+			<input type = "password" id = "Assign_user-password"><br><br>
+			<input type = "button" value = "Submit" onclick = "assign_new_user()">
+		</form>
+		<div id = "Assign_result"></div>
+
+		<h1>User_Log_in</h1>
+		<form>
+			<label for = "Log_in_user-address">User_Address:</label><br>
+			<input type = "text" id = "Log_in_user-address"><br><br>
+			<label for = "Log_in_user-name">User_Name:</label><br>
+			<input type = "text" id = "Log_in_user-name"><br><br>
+			<label for = "Log_in_user-password">User_Password:</label><br>
+			<input type = "password" id = "Log_in_user-password"><br><br>
+			<input type = "button" value = "Submit" onclick = "log_in()">
+		</form>
+		<div id = "Log_in_result"></div>
+	</div>
+
+  	<div id = "log_in" style="display: none;">
+		<h1>Log_out</h1>
+		<input type = "button" value = "Submit" onclick = "log_out()">
+		<h1>User_info</h1>
+		<form>
+			<label for = "user-address">User_Address:</label><br>
+			<input type = "text" id = "User_info_user-address"><br><br>
+			<input type = "button" value = "Submit" onclick = "user_info()">
+		</form>
+		<div id = "User_info_result"></div>
+
+		<h1>Post_something</h1>
+		<form>
+			<label for = "Title">Title:</label><br>
+			<input type = "text" id = "post_something_Title"><br><br>
+			<label for = "content">Content:</label><br>
+			<input type = "text" id = "post_something_Content"><br><br>
+			<input type = "button" value = "Submit" onclick = "post_something()">
+		</form>
+		<div id = "post_something_result"></div>
+
+		<h1>Like</h1>
+		<form>
+			<label for = "like_Post_id">Post_id:</label><br>
+			<input type = "text" id = "like_Post_id"><br><br>
+			<input type = "button" value = "Submit" onclick = "like()">
+		</form>
+		<div id = "like_result"></div>
+
+		<h1>Dislike</h1>
+		<form>
+			<label for = "dislike_Post_id">Post_id:</label><br>
+			<input type = "text" id = "dislike_Post_id"><br><br>
+			<input type = "button" value = "Submit" onclick = "dislike()">
+		</form>
+		<div id = "dislike_result"></div>
+
+		<h1>Cancel_like_or_dislike</h1>
+		<form>
+			<label for = "Cancel_like_or_dislike_Post_id">Post_id:</label><br>
+			<input type = "text" id = "Cancel_like_or_dislike_Post_id"><br><br>
+			<input type = "button" value = "Submit" onclick = "Cancel_like_or_dislike()">
+		</form>
+		<div id = "Cancel_like_or_dislike_result"></div>
+
+		<h1>Show_post</h1>
+		<form>
+			<label for = "Show_post_Post_id">Post_id:</label><br>
+			<input type = "text" id = "Show_post_Post_id"><br><br>
+			<input type = "button" value = "Submit" onclick = "Show_post()">
+		</form>
+		<div id = "Show_post_result"></div>
+
+		<h1>Comment_something</h1>
+		<form>
+			<label for = "Title">Post_id:</label><br>
+			<input type = "text" id = "comment_something_Post_id"><br><br>
+			<label for = "content">Content:</label><br>
+			<input type = "text" id = "comment_something_Content"><br><br>
+			<input type = "button" value = "Submit" onclick = "comment_something()">
+		</form>
+		<div id = "comment_something_result"></div>
+
+		<h1>Show_comment</h1>
+		<form>
+			<label for = "Show_comment_Post_id">Post_id:</label><br>
+			<input type = "text" id = "Show_comment_Post_id"><br><br>
+			<label for = "Show_comment_Comment_id">Comment_id:</label><br>
+			<input type = "text" id = "Show_comment_Comment_id"><br><br>
+			<input type = "button" value = "Submit" onclick = "show_comment()">
+		</form>
+		<div id = "Show_comment_result"></div>
+
+		<h1>Create_pool</h1>
+		<form>
+			<label for = "Create_pool_Description">Description:</label><br>
+			<input type = "text" id = "Create_pool_Description"><br><br>
+			<input type = "button" value = "Submit" onclick = "create_pool()">
+		</form>
+		<div id = "Create_pool_result"></div>
+
+		<h1>Show_pool</h1>
+		<form>
+			<label for = "Show_pool_Vote_id">Vote_id:</label><br>
+			<input type = "text" id = "Show_pool_Vote_id"><br><br>
+			<input type = "button" value = "Submit" onclick = "show_pool()">
+		</form>
+		<div id = "Show_pool_result"></div>
+
+		<h1>Vote_yes</h1>
+		<form>
+			<label for = "Vote_yes_Post_id">Vote_id:</label><br>
+			<input type = "text" id = "Vote_yes_Post_id"><br><br>
+			<label for = "Vote_yes_Amuont">Amount (token U spend):</label><br>
+			<input type = "text" id = "Vote_yes_Amuont"><br><br>
+			<input type = "button" value = "Submit" onclick = "vote_yes()">
+		</form>
+		<div id = "Vote_yes_result"></div> 
+
+		<h1>Vote_no</h1>
+		<form>
+			<label for = "Vote_no_Post_id">Vote_id:</label><br>
+			<input type = "text" id = "Vote_no_Post_id"><br><br>
+			<label for = "Vote_no_Amuont">Amount (token U spend):</label><br>
+			<input type = "text" id = "Vote_no_Amuont"><br><br>
+			<input type = "button" value = "Submit" onclick = "vote_no()">
+		</form>
+		<div id = "Vote_no_result"></div>
+	</div>	
+</body>
+</html>
