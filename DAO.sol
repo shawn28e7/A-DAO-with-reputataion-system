@@ -188,23 +188,49 @@ contract test_contract
         return false;
     }
 
-    function show_pool(uint256 x) public view returns(string memory, int64, int64)
+    function show_pool(uint256 x) public returns(string memory, int64, int64, string memory)
     {
         if(x >= votes.length)
         {
-            return ("Vote does not exists", -1, -1);
+            return ("Vote does not exists", -1, -1, "");
         }
-        return (votes[x].description, votes[x].yes, votes[x].no);
+        string memory status;
+        if (block.timestamp > votes[x].deadline)
+        {
+            if(votes[x].yes > votes[x].no && votes[x].pass == false)
+            {
+                votes[x].pass = true;
+                users[votes[x].creator].token += voting_cost;
+            }
+            if (votes[x].yes > votes[x].no)
+            {
+                status = "vote pass";
+            }
+            else
+            {
+                status = "vote didn't pass";
+            }
+        }
+        else
+        {
+            status = "voting...";
+        }
+        return (votes[x].description, votes[x].yes, votes[x].no, status);
     }
 
     function cal_votes(int64 x) public pure returns(int64)
     {
-        int64 res = 0;
-        int64 expo = 1;
-        while (x - expo > 0)
+        int64 res = 1;
+        while (true)
         {
-            res++;
-            expo *= 2;
+            if(x > res * res)
+            {
+                res++;
+            }
+            else
+            {
+                break;
+            }
         }
         return res;
     }
@@ -227,35 +253,6 @@ contract test_contract
             int64 tmp = cal_votes(amount);
             votes[vote_id].status[from] -= tmp;
             votes[vote_id].no += tmp;
-        }
-    }
-
-    function un_vote(address from, uint64 vote_id) public
-    {
-        if (block.timestamp <= votes[vote_id].deadline)
-        {
-            if(votes[vote_id].status[from] > 0)
-            {
-                int64 x = 1;
-                for(int i = 0; i < votes[vote_id].status[from]; i++)
-                {
-                    x <<= 1;
-                }
-                users[from].token += x;
-                votes[vote_id].yes -= votes[vote_id].status[from];
-                votes[vote_id].status[from] = 0;
-            }
-            else
-            {
-                int64 x = 1;
-                for(int i = 0; i > votes[vote_id].status[from]; i--)
-                {
-                    x <<= 1;
-                }
-                users[from].token += x;
-                votes[vote_id].no -= votes[vote_id].status[from];
-                votes[vote_id].status[from] = 0;
-            }
         }
     }
 }
