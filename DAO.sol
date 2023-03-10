@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-contract test_contract
+contract DAO
 {
     struct comments 
     {
